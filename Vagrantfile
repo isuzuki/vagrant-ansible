@@ -8,13 +8,6 @@ initialize = <<-EOT
   fi
 EOT
 
-# ansibleのインストール
-provision = <<-EOT
-  rpm -ivh http://ftp.riken.jp/Linux/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
-  yum -y install ansible libselinux-python
-  ansible-playbook /vagrant/provision/playbook.yml --connection=local -vvv
-EOT
-
 # アプリの設定を記載したファイルの読み込み
 require_relative "vm_env"
 
@@ -40,7 +33,12 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.provision "shell", inline: initialize
-  config.vm.provision "shell", inline: provision
+
+  # プロビジョニング
+  config.vm.provision "ansible_local" do |ansible|
+    ansible.playbook = "provision/playbook.yml"
+    ansible.verbose = "vvv"
+  end
 
   config.vm.provision :serverspec do |spec|
     spec.pattern = "spec/default/*_spec.rb"
